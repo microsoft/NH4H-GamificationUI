@@ -34,6 +34,8 @@ class ActivityListItem extends React.Component {
     nh4h.post("/useractivity/Points", body) 
       .then((response) => {
         alert("Point added!");
+        window.location.reload(false);
+
       });
   }
 
@@ -71,7 +73,6 @@ class ActivityListItem extends React.Component {
           <div className="content">
             <div className="ui disabled">
               <Checkbox className="hidden" disabled readOnly="" tabIndex="-1" label={this.props.name} />
-              {/* <label style={{color: "#3e3e3e", fontWeight:"bold" }}>{this.props.name}  </label> */}
             </div> 
           </div>
           <div className="extra content">

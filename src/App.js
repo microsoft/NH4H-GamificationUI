@@ -3,9 +3,10 @@ import { Dropdown, Input } from 'semantic-ui-react'
 import nh4h from './apis/nh4h';
 import ActivityList from './components/activitylist';
 import * as Msal from "msal";
-import { Message } from 'semantic-ui-react';
+import { Message, Progress } from 'semantic-ui-react';
 import { Fragment } from 'react';
 import { useParams } from 'react-router';
+
 
 class App extends Component {
   constructor(props){
@@ -113,18 +114,28 @@ class App extends Component {
   //   }
     
   // }
+
+  
    
   handleDismiss = () => {
     this.setState({ visible: false })
   }
- 
+
+  incrementProgress = () =>
+    this.setState((prevState) => ({
+      percent: prevState.percent >= 100 ? 0 : prevState.percent + 20,
+    }))
+
   render() { 
+    
    
     const divStyle = {
       width: '80%'
     };
 
-    if(this.state.myActivityGroups && this.state.myActivityGroups.length > 0) {
+
+
+    if(this.state.myActivityGroups && this.state.myActivityGroups.length > 0 && this.state.username != null) {
       return(
         <div>         
           <div className="ui segment">
@@ -132,30 +143,30 @@ class App extends Component {
               <div className="row">
                 
                 <div className="col-md-4"><h2 style={{float: "left" }}>Hello, {this.state.temp_username}</h2> <span style={{display: "block", float:"left"}}>({this.state.role})</span></div>
-                <div style={{ clear: "left"}} className="col-md-4 offset-md-4"><h4>Your current progress: {this.state.completedPts} / {this.state.totalPts} </h4></div>
+                <div style={{ clear: "left"}} className="col-md-4 offset-md-4"><h4> </h4></div>
+              <div>
+                <Progress value={this.state.completedPts} total={this.state.totalPts} progress='ratio' indicating/>
+              </div>
               </div>
             </div>
+
+            
   
   
-            <div>Here are the list of your activities. Enjoy!</div>
+            <div class="ui icon message"><i aria-hidden="true" class="info icon"></i>As a participant you are encouraged to complete as many of the following activities as possible. They will not only teach you new and valuable skills but also help you get up and running with your team faster and make sure you are as engaged as possible.</div>
             
             <h2>All Activites</h2>
             <ActivityList myActivityGroups={this.state.myActivityGroups} email={this.state.email} />
           </div>
         </div>
       );
-    } else if(this.state.username == null || this.state.username == ""){
+    } else {
       return(
-        
         <div>
           {!this.state.username?<Message header='Contact Support!'
                   content='User Not found please ask for help in general channel.'
                 />:""}
         </div>
-      );
-    } else {
-      return (
-        <div class="ui active centered inline loader"></div> 
       );
     }
     
