@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion, Icon } from 'semantic-ui-react';
+import { Accordion, Card, Icon } from 'semantic-ui-react';
 import ActivityListItem from './activityListItem';
 
 class ActivityList extends React.Component {
@@ -11,19 +11,6 @@ class ActivityList extends React.Component {
       activeIndex: 0
     }
   }
-  // render() {
-   
-  //   return(
-  //     <div className="blue card">
-  //       <div className="content">
-  //         <div className="header">[RoleName] Activites</div>
-  //       </div>
-  //       <div className="content">
-  //         <strong>Activities: </strong><br/>          
-  //       </div>
-  //     </div>
-  //   )
-  // }
 
   handleClick = (e, titleProps) => {
     const { index } = titleProps
@@ -59,9 +46,9 @@ class ActivityList extends React.Component {
        {ag.activityGroupName}
       </Accordion.Title>
       <Accordion.Content active={this.state.activeIndex === index}> 
-        <div className="ui special stackable cards">
+        <Card.Group>
           {this.getActivityListItems(ag.activities)}
-        </div>
+        </Card.Group>
       </Accordion.Content>
       </div>
       </>

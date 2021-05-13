@@ -1,5 +1,5 @@
 import React from 'react';
-import { Checkbox, Label, Button } from 'semantic-ui-react';
+import { Button, Card, Checkbox, Grid, Label, Segment } from 'semantic-ui-react';
 import nh4h from '../apis/nh4h';
 
 class ActivityListItem extends React.Component {
@@ -43,54 +43,40 @@ class ActivityListItem extends React.Component {
 
     if (this.props.pointsEarned > 0) {
       return(
-        <div className="teal card">
-          <div className="content">
-            <div className="ui checked">
-              <Checkbox checked="true" className="hidden" readOnly="" tabIndex="0" label={this.props.name} />
-              {/* <label style={{color: "##000", fontWeight:"bold" }}>{this.props.name}</label> */}
-            </div> 
-          </div>
-          <div className="extra content">
-            {this.props.description}
-            <br/><br/> 
-            { this.props.manual == true && 
-              <Button positive disabled color='green'>
-                Add Point
-              </Button>    
-            }
-            <br /><br />
-            { this.props.link != null && 
-              <Label color="grey" as='a' target="_blank" href={this.props.link}>
-                {this.props.link}
-              </Label>    
-            }
-          </div>
-        </div>
+        <Card>
+          <Card.Content>
+          <Card.Header style={{"padding": "10px 0px"}}><Checkbox checked="true" className="hidden" readOnly="" tabIndex="0" label={this.props.name} disabled fitted="true"/></Card.Header>
+            <Card.Meta style={{"color":"#777"}}>{this.props.points} point(s) added!</Card.Meta>
+            <Card.Description style={{"border-top": "0.5px solid  #eee", "padding-top": "6px", "color": "#eee"}}>
+              {this.props.description}            
+            </Card.Description>
+          </Card.Content>
+        </Card>
       )
     } else {
       return(
-        <div className="teal card">
-          <div className="content">
-            <div className="ui disabled">
-              <Checkbox className="hidden" disabled readOnly="" tabIndex="-1" label={this.props.name} />
-            </div> 
-          </div>
-          <div className="extra content">
-            {this.props.description}
-            <br/><br/> 
-            { this.props.manual == true && 
-               <Button onClick={this.addPoint} id={this.props.id} positive color='green'>
-                Add Point
-              </Button>    
-            }
-            <br /><br />
-            { this.props.link != null && 
-              <Label color="grey" as='a' target="_blank" href={this.props.link}>
-                {this.props.link}
-              </Label>    
-            } 
-          </div>
-        </div>
+        <Card color="orange">
+          <Card.Content>
+            <Card.Header style={{"padding": "10px 0px"}}><span style={{"font-weight": "bold"}}>{this.props.name}</span></Card.Header>
+            <Card.Meta></Card.Meta>
+            <Card.Description style={{"border-top": "0.5px solid  #eee", "padding-top": "6px"}}>
+              {this.props.description} 
+              <br /><br />
+              { this.props.link != null && 
+                <Label color="gray" as='a' target="_blank" href={this.props.link}>
+                  {this.props.link}
+                </Label>    
+              }
+              <br /><br />
+              { this.props.manual == true && 
+                <Button size="tiny" onClick={this.addPoint} id={this.props.id} positive>
+                  Add Point
+                </Button>    
+              }
+           
+            </Card.Description>
+          </Card.Content>
+        </Card>
       )
     }
   }
