@@ -1,30 +1,32 @@
 import React, { useState } from 'react';
 import { Button, Card, Checkbox, Grid, Label, Segment } from 'semantic-ui-react';
+import { useMsal } from '@azure/msal-react';
 import nh4h from '../apis/nh4h';
-import { ApiScope } from '../apis/nh4h';
-
-// class ActivityListItem extends React.Component {
-
-//   constructor(props){
-//     super(props);
-//     this.state={
-//       members:1,
-//       userEmail:props.userEmail,
-//       msal:props.msalInstance
-//     }
-//   }
+import { HackApiScope } from '../apis/nh4h';
 
 function ActivityListItem(props) {
+  const { instance, accounts } = useMsal();
 
-  function addPoint(event, data) {
-    // console.log("props addPoint", this.props.userEmail)
+  async function getAccessToken() {
+    let req = {
+      scope: [HackApiScope],
+      account: accounts[0]
+    };
+
+    let resp = await instance.acquireTokenSilent(req);
+    return resp.accessToken;
+  }
+
+  async function addPoint(event, data) {
     let body = {
       UserEmail: props.userEmail,
       ActivityId: data.id
     }
 
     // += TODO: Get activity name and show it to user! 
-    nh4h.post("/useractivity/Points", body)
+    let token = await getAccessToken();
+    let apiClient = nh4h(token);
+    apiClient.post("/useractivity/Points", body)
       .then((response) => {
         alert("Point added!");
         window.location.reload(false);
