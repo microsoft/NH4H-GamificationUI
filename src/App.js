@@ -39,7 +39,7 @@ function App() {
         let completedPoints = resp.data.activities.reduce((sum, item) => sum + item.completedPoints, 0);
 
         setTotalPts(totalPoints);
-        setCompletedPts(completedPts);
+        setCompletedPts(completedPoints);
         setActivityGroups(resp.data.activities);
         setUsername(resp.data.userName);
         setRoleName(resp.data.userRoleName);
