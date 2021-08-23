@@ -28,7 +28,6 @@ function App() {
   }
 
   useEffect(() => {
-    console.log('running useeffect');
     const getAllActivities = async (email) => {
       if (email) {
         let accessToken = await getAccessToken();
@@ -36,12 +35,8 @@ function App() {
 
         let resp = await apiClient.get("/useractivity/" + email);
 
-        let totalPoints = totalPts;
-        let completedPoints = completedPts;
-
-        //resp.data.activities.reduce()
-        resp.data.activities.map(a => totalPoints += a.totalPoints)
-        resp.data.activities.map(a => completedPoints += a.completedPoints)
+        let totalPoints = resp.data.activities.reduce((sum, item) => sum + item.totalPoints, 0);
+        let completedPoints = resp.data.activities.reduce((sum, item) => sum + item.completedPoints, 0);
 
         setTotalPts(totalPoints);
         setCompletedPts(completedPts);
@@ -59,39 +54,43 @@ function App() {
     }
   }, [isAuthenticated]);
 
-  return (
 
-    //if(this.state.myActivityGroups && this.state.myActivityGroups.length > 0 && this.state.username != null) {
-    <div>
-      <AuthenticatedTemplate>
-        <div>
-          <div className="ui segment">
-            <div className="container">
-              <div className="row">
+  if (activityGroups && activityGroups.length > 0 && username != null) {
+    return (
+      <div>
+        <AuthenticatedTemplate>
+          <div>
+            <div className="ui segment">
+              <div className="container">
+                <div className="row">
 
-                <div className="col-md-4"><h2 style={{ float: "left" }}>Hello, {username}</h2> <span style={{ display: "block", float: "left" }}>({roleName})</span></div>
-                <div style={{ clear: "left" }} className="col-md-4 offset-md-4"><h4> </h4></div>
-                <div>
-                  <Progress value={completedPts} total={totalPts} progress='ratio' indicating />
+                  <div className="col-md-4"><h2 style={{ float: "left" }}>Hello, {username}</h2> <span style={{ display: "block", float: "left" }}>({roleName})</span></div>
+                  <div style={{ clear: "left" }} className="col-md-4 offset-md-4"><h4> </h4></div>
+                  <div>
+                    <Progress value={completedPts} total={totalPts} progress='ratio' indicating />
+                  </div>
                 </div>
               </div>
+
+              <div className="ui icon message"><i aria-hidden="true" className="info icon"></i>As a participant you are encouraged to complete as many of the following activities as possible. They will not only teach you new and valuable skills but also help you get up and running with your team faster and make sure you are as engaged as possible.</div>
+
+              <h2>All Activites</h2>
+              <ActivityList myActivityGroups={activityGroups} email={email} />
             </div>
-
-            <div className="ui icon message"><i aria-hidden="true" className="info icon"></i>As a participant you are encouraged to complete as many of the following activities as possible. They will not only teach you new and valuable skills but also help you get up and running with your team faster and make sure you are as engaged as possible.</div>
-
-            <h2>All Activites</h2>
-            <ActivityList myActivityGroups={activityGroups} email={email} />
           </div>
-        </div>
-      </AuthenticatedTemplate>
+        </AuthenticatedTemplate>
+      </div>
+    );
+  } else {
+    return (
+    <div>
       <UnauthenticatedTemplate>
-        <div>
-          {!username ? <Message header='Contact Support!' content='User Not found please ask for help in general channel.' /> : ""}
-        </div>
         <SignInButton />
       </UnauthenticatedTemplate>
+      {!username ? <Message header='Contact Support!' content='User Not found please ask for help in general channel.' /> : ""}
     </div>
-  );
+    );
+  }
 }
 
 export default App;

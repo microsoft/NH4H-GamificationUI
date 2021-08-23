@@ -3,7 +3,7 @@ import { Accordion, Card, Icon } from 'semantic-ui-react';
 import ActivityListItem from './activityListItem';
 
 function ActivityList({ myActivityGroups, email }) {
-  const [activeIndex, setActiveIndex] = useState(-1);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   function handleClick(e, titleProps) {
     const { index } = titleProps
