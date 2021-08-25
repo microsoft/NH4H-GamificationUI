@@ -1,175 +1,95 @@
-import React, { Component } from 'react';
-import { Dropdown, Input } from 'semantic-ui-react'
+import React, { useState, useEffect } from 'react';
 import nh4h from './apis/nh4h';
-import ActivityList from './components/activitylist';
-import * as Msal from "msal";
+import { HackApiScope } from './apis/nh4h';
 import { Message, Progress } from 'semantic-ui-react';
-import { Fragment } from 'react';
-import { useParams } from 'react-router';
+import { useMsal } from "@azure/msal-react";
+import { AuthenticatedTemplate, UnauthenticatedTemplate, useIsAuthenticated } from "@azure/msal-react";
+import ActivityList from './components/activitylist';
+import { SignInButton } from './components/SignInButton';
 
+function App() {
+  const { instance, accounts } = useMsal();
+  const isAuthenticated = useIsAuthenticated();
+  const [email, setEmail] = useState('');
+  const [totalPts, setTotalPts] = useState(0);
+  const [completedPts, setCompletedPts] = useState(0);
+  const [activityGroups, setActivityGroups] = useState(null);
+  const [username, setUsername] = useState('');
+  const [roleName, setRoleName] = useState('');
 
-class App extends Component {
-  constructor(props){
-    super(props);
-    let msalConfig = {
-      auth: {
-        clientId: 'b3544b0c-1209-4fe8-b799-8f63a0179fa0',
-        authority: "https://login.microsoftonline.com/e773e193-89d3-44d9-ae4e-17766699f674",
-        //redirectUri:"/loggedin" 
-      }
-    };
-    let msalI = new Msal.UserAgentApplication(msalConfig);
-    this.state = {
-      msalInstance: msalI,
-      email: null,
-      visible: true,
-      totalPts: 0,
-      completedPts: 0
+  async function getAccessToken() {
+    let req = {
+      scopes: [HackApiScope],
+      account: accounts[0]
     }
+
+    let resp = await instance.acquireTokenSilent(req);
+    return resp.accessToken;
   }
 
-  inviteToJoin(id){
-    console.log("invite user: " + id)
-  }
+  useEffect(() => {
+    const getAllActivities = async (email) => {
+      if (email) {
+        let accessToken = await getAccessToken();
+        let apiClient = nh4h(accessToken);
 
-  
-  unique = (value, index, self) => {
-    return self.indexOf(value) === index
-  }
+        let resp = await apiClient.get("/useractivity/" + email);
 
-  componentDidMount() {
+        let totalPoints = resp.data.activities.reduce((sum, item) => sum + item.totalPoints, 0);
+        let completedPoints = resp.data.activities.reduce((sum, item) => sum + item.completedPoints, 0);
+
+        setTotalPts(totalPoints);
+        setCompletedPts(completedPoints);
+        setActivityGroups(resp.data.activities);
+        setUsername(resp.data.userName);
+        setRoleName(resp.data.userRoleName);
+        setEmail(email);
+      }
+    }
 
     //get login info
-    if (this.state.msalInstance.getAccount()) {
-      let id = this.state.msalInstance.getAccount();
-      this.setState({
-        email: id.userName,
-        username: id.name
-      }, () => {
-       
-        // this.getUserID();
-        this.getAllActivities(this.state.email);
-      });
-
-    
-
-    } else {
-      let loginRequest = {
-        scopes: ["user.read"] // optional Array<string>
-      };
-      this.state.msalInstance.loginRedirect(loginRequest)
-        .then(response => {
-        })
-        .catch(err => {
-          // handle error
-        });
+    if (isAuthenticated) {
+      let id = accounts[0];
+      getAllActivities(id.username);
     }
-   
-  }
-
-  // getUserID = () => {
-  //   let body = { UserMSTeamsEmail: this.state.email };
-  //   nh4h.post('/users/msemail', body)
-  //     .then((response) => {
-  //       if(!response.returnError){
-  //       this.setState({ 
-  //         userObject:response.data,
-  //         userid: response.data.userId
-  //        });
-  //       }
-  //     });
-  // }
+  }, [isAuthenticated]);
 
 
-  getAllActivities = (email) => {
-    if(email) {
-      nh4h.get("/useractivity/" + email) 
-      .then((response) => {
-        response.data.activities.map(a =>
-          this.state.totalPts += a.totalPoints,
-        )
-        response.data.activities.map(a =>
-          this.state.completedPts += a.completedPoints,
-        )
-        
-        this.setState({
-          myActivityGroups: response.data.activities,
-          temp_username: response.data.userName,
-          role: response.data.userRoleName 
-        }) 
-        
-      });
-    }
+  if (activityGroups && activityGroups.length > 0 && username != null) {
+    return (
+      <div>
+        <AuthenticatedTemplate>
+          <div>
+            <div className="ui segment">
+              <div className="container">
+                <div className="row">
 
-  };
-
-  // renderActivities = () => {
-  //   if (this.state.myActivityGroups) {
-  //     return this.state.myActivityGroups.map((ma, index) => {
-  //       console.log(ma.activityGroupName);
-  //       return (
-  //         <h4 key={index}>{ ma.activityGroupName } </h4>
-  //       )
-  //     })
-  //   }
-    
-  // }
-
-  
-   
-  handleDismiss = () => {
-    this.setState({ visible: false })
-  }
-
-  incrementProgress = () =>
-    this.setState((prevState) => ({
-      percent: prevState.percent >= 100 ? 0 : prevState.percent + 20,
-    }))
-
-  render() { 
-    
-   
-    const divStyle = {
-      width: '80%'
-    };
-
-
-
-    if(this.state.myActivityGroups && this.state.myActivityGroups.length > 0 && this.state.username != null) {
-      return(
-        <div>         
-          <div className="ui segment">
-            <div className="container">
-              <div className="row">
-                
-                <div className="col-md-4"><h2 style={{float: "left" }}>Hello, {this.state.temp_username}</h2> <span style={{display: "block", float:"left"}}>({this.state.role})</span></div>
-                <div style={{ clear: "left"}} className="col-md-4 offset-md-4"><h4> </h4></div>
-              <div>
-                <Progress value={this.state.completedPts} total={this.state.totalPts} progress='ratio' indicating/>
+                  <div className="col-md-4"><h2 style={{ float: "left" }}>Hello, {username}</h2> <span style={{ display: "block", float: "left" }}>({roleName})</span></div>
+                  <div style={{ clear: "left" }} className="col-md-4 offset-md-4"><h4> </h4></div>
+                  <div>
+                    <Progress value={completedPts} total={totalPts} progress='ratio' indicating />
+                  </div>
+                </div>
               </div>
-              </div>
+
+              <div className="ui icon message"><i aria-hidden="true" className="info icon"></i>As a participant you are encouraged to complete as many of the following activities as possible. They will not only teach you new and valuable skills but also help you get up and running with your team faster and make sure you are as engaged as possible.</div>
+
+              <h2>All Activites</h2>
+              <ActivityList myActivityGroups={activityGroups} email={email} />
             </div>
-
-            
-  
-  
-            <div class="ui icon message"><i aria-hidden="true" class="info icon"></i>As a participant you are encouraged to complete as many of the following activities as possible. They will not only teach you new and valuable skills but also help you get up and running with your team faster and make sure you are as engaged as possible.</div>
-            
-            <h2>All Activites</h2>
-            <ActivityList myActivityGroups={this.state.myActivityGroups} email={this.state.email} />
           </div>
-        </div>
-      );
-    } else {
-      return(
-        <div>
-          {!this.state.username?<Message header='Contact Support!'
-                  content='User Not found please ask for help in general channel.'
-                />:""}
-        </div>
-      );
-    }
-    
+        </AuthenticatedTemplate>
+      </div>
+    );
+  } else {
+    return (
+    <div>
+      <UnauthenticatedTemplate>
+        <SignInButton />
+      </UnauthenticatedTemplate>
+      {!username ? <Message header='Contact Support!' content='User Not found please ask for help in general channel.' /> : ""}
+    </div>
+    );
   }
 }
 
